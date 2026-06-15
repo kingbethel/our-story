@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Story | Bethel & Caitlin</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #050505;
+            --white: #FFFFFF;
+            --gold: #D4AF37;
+            --gold-light: #F1D27D;
+            --serif: 'Playfair Display', serif;
+            --sans: 'Poppins', sans-serif;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; outline: none; }
+        
+        body { 
+            background-color: var(--bg); 
+            color: var(--white); 
+            font-family: var(--font-sans); 
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* --- BACKGROUND ENGINE: AMBIENT AURA --- */
+        .viewport-bg { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: #000; }
+        .bg-slide {
+            position: absolute; inset: 0; opacity: 0; 
+            transition: opacity 1.5s var(--ease);
+        }
+        .bg-slide::before {
+            content: ""; position: absolute; inset: -10%;
+            background-image: var(--bg-img); background-size: cover; background-position: center;
+            filter: blur(60px) brightness(0.25) saturate(1.2);
+        }
+        .bg-slide.active { opacity: 1; }
+
+        .noise { position: fixed; inset: 0; width: 100%; height: 100%; background-image: url("https://upload.wikimedia.org/wikipedia/commons/7/76/1k_Grain_Texture.png"); opacity: 0.03; pointer-events: none; z-index: 9999; }
+        .vignette { position: fixed; inset: 0; background: radial-gradient(circle at center, transparent 50%, rgba(0,0,0,0.8) 100%); pointer-events: none; z-index: 9998; }
+
+        /* --- PRELOADER --- */
+        #loader { position: fixed; inset: 0; background: #000; z-index: 10001; display: flex; justify-content: center; align-items: center; flex-direction: column; }
+        .loader-text { font-family: var(--serif); letter-spacing: 12px; font-size: 14px; color: var(--gold); margin-bottom: 25px; }
+        .loader-track { width: 150px; height: 1px; background: rgba(255,255,255,0.1); }
+        .loader-bar { height: 100%; width: 0%; background: var(--gold); }
+
+        /* --- NAVIGATION --- */
+        .nav-ui { position: fixed; top: 0; left: 0; width: 100%; padding: 40px 60px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
+        .nav-label { font-size: 10px; letter-spacing: 6px; text-transform: uppercase; color: var(--gold); font-weight: 600; opacity: 0.7; }
+        .music-widget { pointer-events: all; display: flex; align-items: center; gap: 15px; padding: 12px 25px; background: rgba(255,255,255,0.03); border-radius: 50px; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); cursor: pointer; transition: 0.3s; }
+        .music-widget:hover { border-color: var(--gold); background: rgba(255,255,255,0.08); }
+        .v-bar { width: 2px; height: 12px; background: var(--gold); transform-origin: bottom; }
+
+        /* --- SECTIONS --- */
+        section { min-height: 100vh; width: 100%; display: flex; align-items: center; justify-content: center; padding: 0 10%; position: relative; }
+
+        /* --- THE HERO / FINALE LAYOUT (EDITORIAL) --- */
+        .editorial-layout {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            align-items: center;
+            gap: 5vw;
+            width: 100%;
+        }
+
+        .editorial-text { z-index: 10; }
+        .editorial-text h2 { font-size: 12px; letter-spacing: 10px; color: var(--gold); margin-bottom: 20px; font-weight: 400; }
+        .editorial-text h1 { font-family: var(--serif); font-size: clamp(3rem, 6vw, 6rem); line-height: 1; font-weight: 400; margin-bottom: 30px; letter-spacing: -2px; }
+        .editorial-text p { font-size: 1.1rem; font-weight: 300; opacity: 0.8; max-width: 500px; line-height: 1.8; }
+
+        .editorial-image {
+            position: relative;
+            width: 100%;
+            height: 80vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .img-frame {
+            width: 100%;
+            height: 100%;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.02);
+            padding: 20px;
+            box-shadow: 0 50px 100px -20px rgba(0,0,0,1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .img-frame img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            filter: drop-shadow(0 20px 30px rgba(0,0,0,0.5));
+        }
+
+        /* --- TIMELINE SECTION --- */
+        .timeline-grid { width: 100%; max-width: 1400px; display: flex; flex-direction: column; gap: 30vh; padding: 20vh 0; }
+        .timeline-card { display: grid; grid-template-columns: 1fr 1fr; gap: 8vw; align-items: center; }
+        .timeline-card:nth-child(even) { direction: rtl; }
+        .timeline-card:nth-child(even) .text-content { direction: ltr; }
+
+        .text-content h3 { font-family: var(--serif); font-size: 3rem; color: var(--gold); margin-bottom: 25px; font-weight: 400; }
+        .text-content p { color: rgba(255,255,255,0.7); font-size: 1.1rem; font-weight: 300; line-height: 2; }
+
+        /* --- PREMIUM BUTTON --- */
+        .btn-luxe {
+            background: transparent; border: 1px solid var(--gold); color: var(--gold);
+            padding: 20px 50px; font-size: 11px; letter-spacing: 6px; text-transform: uppercase;
+            font-weight: 600; cursor: pointer; transition: 0.4s; margin-top: 40px;
+            position: relative; overflow: hidden;
+        }
+        .btn-luxe:hover { color: #000; background: var(--gold); box-shadow: 0 20px 40px rgba(212, 175, 55, 0.3); transform: translateY(-5px); }
+
+        /* --- DOCUMENT (LETTER) --- */
+        .document { background: #fffdfa; color: #111; padding: 80px; max-width: 800px; box-shadow: 0 80px 150px rgba(0,0,0,0.8); position: relative; }
+        .document::before { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: var(--gold); }
+        .letter-body { font-family: var(--serif); font-size: 1.35rem; line-height: 2.2; font-style: italic; white-space: pre-line; }
+
+        /* --- MOBILE ADAPTATION --- */
+        @media (max-width: 900px) {
+            .editorial-layout, .timeline-card { grid-template-columns: 1fr; gap: 40px; text-align: center; }
+            section { padding: 80px 5%; }
+            .editorial-image { height: 60vh; }
+            .editorial-text p { margin: 0 auto; }
+            .nav-ui { padding: 25px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="noise"></div>
+    <div class="vignette"></div>
+
+    <!-- AMBIENT AURA ENGINE -->
+    <div class="viewport-bg">
+        <div class="bg-slide active" style="--bg-img: url('img/1.jpg');"></div>
+        <div class="bg-slide" style="--bg-img: url('img/2.jpg');"></div>
+        <div class="bg-slide" style="--bg-img: url('img/3.jpg');"></div>
+    </div>
+
+    <div id="loader">
+        <div class="loader-text">BETHEL & CAITLIN</div>
+        <div class="loader-track"><div class="loader-bar"></div></div>
+    </div>
+
+    <div class="nav-ui">
+        <div class="nav-label"> Anniversary // Ikalabing-dalawa</div>
+        <div class="music-widget" id="musicBtn">
+            <div style="display: flex; gap: 3px; align-items: flex-end;">
+                <div class="v-bar"></div><div class="v-bar"></div><div class="v-bar"></div><div class="v-bar"></div>
+            </div>
+            <span id="musicStatus" style="font-size: 8px; letter-spacing: 3px; font-weight: 600;">ACTIVATE SOUND</span>
+        </div>
+    </div>
+
+    <audio id="bgMusic" loop>
+        <source src="img/one.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- 1. HERO SECTION (EDITORIAL STYLE) -->
+    <section id="hero">
+        <div class="editorial-layout">
+            <div class="editorial-text">
+                <h2>JUNE 16, 2025</h2>
+                <h1 id="hero-title">Bethel Renz<br><span style="color:var(--gold)">&</span> Caitlin Zeia</h1>
+                <p>This is the story of us.</p>
+                <button class="btn-luxe" onclick="smoothScroll('#sec-timeline')">Explore Our History</button>
+            </div>
+            <div class="editorial-image">
+                <div class="img-frame">
+                    <img src="img/1.jpg" alt="Hero Portrait">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. TIMELINE SECTION -->
+    <section id="sec-timeline">
+        <div class="timeline-grid">
+            <div class="timeline-card">
+                <div class="img-frame"><img src="img/firstchat.jpg"></div>
+                <div class="text-content">
+                    <h2 style="letter-spacing: 5px;">Chapter 01</h2>
+                    <h3>The First Chat</h3>
+                    <p>The day we first started talking, I didn't know what the future held, but I knew one thing: there was something extraordinary about you. As time passed, that feeling only grew stronger. You became more than just someone I talked to you became someone who touched my heart in ways I never expected.</p>
+                </div>
+            </div>
+
+            <div class="timeline-card">
+                <div class="img-frame"><img src="img/firstpic.jpg"></div>
+                <div class="text-content">
+                    <h2 style="letter-spacing: 5px;">May 31, 2026</h2>
+                    <h3>The First Date</h3>
+                    <p>Our first date. The nerves, the laughter, and that moment when I realized you were different from anyone I'd ever met.</p>
+                </div>
+            </div>
+
+            <div class="timeline-card">
+                <div class="img-frame"><img src="img/zambales.jpg"></div>
+                <div class="text-content">
+                    <h2 style="letter-spacing: 5px;">The Escape</h2>
+                    <h3>Zambales</h3>
+                    <p>Naalala mo pa yung first trip natin? HAHAHAHAHAHAHA. Tingin ko hindi dahil sa beach kaya naging memorable 'yon eh, kundi dahil sa mga nangyari. HAHAHAHAHAHA. Yung tamang swimming lang sana tayo tapos biglang tinangay ng alon. HAHAHAHAHA! Nakakatawa man ngayon, pero isa talaga 'yon sa mga moments na hindi ko makakalimutan. Hanggang ngayon, kapag naaalala ko yung trip na 'yon, napapangiti at napapatawa pa rin ako.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. STATISTICS -->
+    <section id="sec-stats">
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; gap: 30px;">
+            <div style="border-left: 1px solid var(--gold); padding: 40px;">
+                <span class="stat-num" data-val="365" style="font-family:var(--serif); font-size: 5rem; color:var(--gold); display:block;">0</span>
+                <span style="font-size: 10px; letter-spacing: 4px; opacity: 0.6; text-transform: uppercase;">Days Together</span>
+            </div>
+            <div style="border-left: 1px solid var(--gold); padding: 40px;">
+                <span class="stat-num" data-val="12" style="font-family:var(--serif); font-size: 5rem; color:var(--gold); display:block;">0</span>
+                <span style="font-size: 10px; letter-spacing: 4px; opacity: 0.6; text-transform: uppercase;">Months Of Joy</span>
+            </div>
+            <div style="border-left: 1px solid var(--gold); padding: 40px;">
+                <span class="stat-num" data-val="8760" style="font-family:var(--serif); font-size: 5rem; color:var(--gold); display:block;">0</span>
+                <span style="font-size: 10px; letter-spacing: 4px; opacity: 0.6; text-transform: uppercase;">Hours of Laughter</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4. VAULT SECTION -->
+    <section id="sec-vault">
+        <div style="text-align: center; max-width: 700px; padding: 100px 60px; background: rgba(0,0,0,0.8); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(40px);">
+            <h2 style="letter-spacing: 5px;">IDENTITY CHECK</h2>
+            <h3 style="font-family:var(--serif); font-size: 2.5rem; margin-bottom: 20px;">The Memory Vault</h3>
+            <p style="opacity: 0.6; font-size: 0.8rem;">Identify: What was our first favorite food together?</p>
+            <input type="text" id="vaultPass" style="background: transparent; border: none; border-bottom: 1px solid var(--gold); color: white; padding: 20px; width: 100%; text-align: center; font-size: 2rem; margin: 40px 0; font-family: var(--serif);" placeholder="Type word...">
+            <button class="btn-luxe" onclick="verifyAccess()">Access Archive</button>
+            <div id="vaultContent" style="display:none; margin-top:60px;">
+                <h3 style="font-family:var(--serif); color:var(--gold); font-size: 2rem;">Access Granted ❤️</h3>
+                <p style="margin-top:20px; font-style: italic;">"LUTO MO NAKO SA SABADO NG HIPON ."</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. LETTER SECTION -->
+    <section id="sec-letter">
+        <div class="document">
+            <div class="letter-body">
+Dear MynekoKet,
+
+From the moment we first met, there was already something about you that felt different. I didn't know it back then, but little by little, our conversations, our random moments together, and all the memories we've made became some of my favorite parts of life.
+
+Thank you for staying. Thank you for being there during the days when I was easy to love and even during the days when I wasn't. Thank you for being my peace when everything feels stressful and for making ordinary days feel special just because you're in them.
+
+When I look back at everything we've been through, I can't help but smile. We've shared so many laughs, made so many memories, and faced challenges together. And honestly, I wouldn't trade any of it for anything.
+
+Happy Anniversary, love. Thank you for choosing me every day and for being the best thing that's ever happened to me. No matter how many years pass, I'll always be grateful that our paths crossed and that I get to call you mine. ❤️
+
+Love always,
+Loveyy, BRP 
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. FINALE SECTION -->
+    <section id="sec-finale">
+        <div class="editorial-layout">
+            <div class="editorial-text">
+                <h1 style="margin-bottom: 20px;">HAPPY ANNIVERSARY<br>My Wifeyyy</h1>
+                <p>To many more chapters, more laughter, and a lifetime of love. You are my greatest adventure.</p>
+                <button class="btn-luxe" onclick="window.scrollTo({top:0, behavior:'smooth'})">Return to Genesis</button>
+            </div>
+            <div class="editorial-image">
+                <div class="img-frame">
+                    <img src="img/2.jpg" alt="Finale Photo">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        // --- PRELOADER ---
+        window.addEventListener('load', () => {
+            gsap.to(".loader-bar", { width: "100%", duration: 1.2, ease: "power2.inOut" });
+            gsap.to("#loader", { y: "-100%", duration: 1, delay: 1.2, ease: "expo.inOut" });
+        });
+
+        // --- BACKGROUND CONTROL ---
+        const slides = document.querySelectorAll('.bg-slide');
+        function setBG(idx) { slides.forEach((s, i) => s.classList.toggle('active', i === idx)); }
+
+        ScrollTrigger.create({ trigger: "#hero", start: "top center", onEnter: () => setBG(0), onEnterBack: () => setBG(0) });
+        ScrollTrigger.create({ trigger: "#sec-timeline", start: "top center", onEnter: () => setBG(1), onEnterBack: () => setBG(1) });
+        ScrollTrigger.create({ trigger: "#sec-stats", start: "top center", onEnter: () => setBG(2), onEnterBack: () => setBG(2) });
+
+        // --- MOTION EFFECTS ---
+        gsap.utils.toArray(".img-frame").forEach(img => {
+            gsap.from(img, { scrollTrigger: { trigger: img, start: "top 85%" }, opacity: 0, scale: 0.9, duration: 2, ease: "expo.out" });
+        });
+
+        // --- MUSIC ---
+        const musicBtn = document.getElementById('musicBtn');
+        const audio = document.getElementById('bgMusic');
+        let playing = false;
+        musicBtn.onclick = () => {
+            if (playing) { audio.pause(); document.getElementById('musicStatus').innerText = "SOUND OFF"; gsap.to(".v-bar", { scaleY: 0.2, stagger: 0 }); }
+            else { audio.play(); document.getElementById('musicStatus').innerText = "SOUND ON"; gsap.to(".v-bar", { scaleY: 1.5, stagger: { each: 0.1, repeat: -1, yoyo: true } }); }
+            playing = !playing;
+        };
+
+        // --- STATS ---
+        gsap.utils.toArray(".stat-num").forEach(num => {
+            const target = num.getAttribute('data-val');
+            gsap.to(num, { innerText: target, duration: 4, snap: { innerText: 1 }, scrollTrigger: { trigger: num, start: "top 90%" } });
+        });
+
+        function smoothScroll(target) { gsap.to(window, { duration: 2, scrollTo: target, ease: "expo.inOut" }); }
+
+        function verifyAccess() {
+            if(document.getElementById('vaultPass').value.toLowerCase().trim() === "hipon") {
+                gsap.to("#vaultContent", { display: "block", opacity: 1, y: 0, duration: 1.5 });
+                confetti({ particleCount: 200, spread: 100, origin: { y: 0.8 } });
+            } else { gsap.to(".vault-ui", { x: 10, repeat: 5, yoyo: true, duration: 0.05 }); }
+        }
+        document.getElementById('vaultPass').addEventListener('keypress', e => { if(e.key === 'Enter') verifyAccess(); });
+    </script>
+</body>
+</html>
